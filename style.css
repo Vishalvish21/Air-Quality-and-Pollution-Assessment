@@ -3,19 +3,25 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
+    color: #2c3e50;
 }
 
 /* Home Page */
 .home {
-    background: url("../images/AQI-BG1.jpg") no-repeat center center/cover;
+    background-color: #d0e8fa;
+/*    background: url("../images/AQI-BG1.jpg") no-repeat center center/cover;*/
     height: 100vh;
+}
+h1 {
+    color: #2c3e50;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 nav {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     padding: 10px;
-    background: rgba(0, 0, 0, 0.7);
+
 }
 
 nav ul {
@@ -29,29 +35,41 @@ nav ul li {
 }
 
 nav ul li a {
-    color: white;
+    color: #2c3e50;
     text-decoration: none;
-    font-size: 18px;
+    font-size: 15px;
     transition: 0.3s;
 }
 
 nav ul li a:hover {
-    color: yellow;
+    color: #3498db;
 }
 
 /* Predict Page */
 .predict {
-    background: url("../images/BG3.jpg") no-repeat center center/cover;
+    /*background: url("../images/BG3.jpg") no-repeat center center/cover;*/
+    background-color: #d0e8fa;
     height: 100vh;
 }
 
 .form-container {
     background: rgba(255, 255, 255, 0.8);
-    padding: 20px;
+    padding: 10px;
     border-radius: 10px;
     margin: 50px auto;
     width: 50%;
 }
+
+.container2 {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;               /* Reduced padding */
+    margin: 40px auto 100px auto;           /* Centered horizontally with smaller margin */
+    width: 80%;                  /* Adjust width as needed (try 60%, 70%) */
+    max-width: 800px;            /* Keeps it from getting too wide on big screens */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 
 input {
     display: block;
@@ -59,17 +77,34 @@ input {
     padding: 10px;
     width: 95%;
 }
+/*.prediction{
+    padding: 10px 20px;
+    background: #27ae60;
+    color: rgb(255, 255, 255);
+    border: none;
+    cursor: pointer;
+    border-radius: 20px;
+}*/
+
+.container {
+    position: relative;
+}
 
 .btn {
     padding: 10px 20px;
-    background: blue;
+    background: #27ae60;
     color: white;
     border: none;
     cursor: pointer;
+    border-radius: 20px;
+
+    position: absolute;
+    bottom: 30px;
+    right: 700px;
 }
 
 .btn:hover {
-    background: darkblue;
+    background: #3498db;
 }
 .home-link {
     margin-left: 10px;
@@ -92,7 +127,7 @@ input {
 
 /* Updated styles for social media icons */
 
-.footer {
+/*.footer {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -102,6 +137,13 @@ input {
     position: absolute;
     bottom: 0;
     width: 100%;
+}*/
+footer {
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 5px;
+
 }
 
 .social-icons {
@@ -131,3 +173,43 @@ input {
     transform: scale(1.1); /* Slight zoom effect on hover */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+.spacer {
+    margin-bottom: 200px;
+}
+.predict-btn {
+    padding: 6px 16px;                  /* Smaller padding */
+    font-size: 14px;                    /* Slightly smaller text */
+    background: #27ae60;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;                /* Slightly rounded */
+    transition: background 0.3s ease;
+}
+
+.predict-btn:hover {
+    background: #3498db;                /* Hover effect */
+}
+.button-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.home-btn {
+    display: inline-block;
+    padding: 6px 16px;
+    font-size: 14px;
+    background: #354b61;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: background 0.3s ease;
+}
+
+.home-btn:hover {
+    background: #c0392b;
+}
+
