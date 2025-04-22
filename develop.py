@@ -16,10 +16,6 @@ def home():
 def predict_page():
     return render_template("predict.html")
 
-@app.route("/weather")
-def weather():
-    return render_template("weather.html")
-
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
