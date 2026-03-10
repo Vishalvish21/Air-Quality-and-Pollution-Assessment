@@ -1,43 +1,709 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <center>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality Predictor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>AirSense — Air Quality Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sky: #0ea5e9;
+            --mint: #10d9a0;
+            --deep: #0a1628;
+            --card: rgba(255,255,255,0.06);
+            --glass: rgba(255,255,255,0.1);
+            --glow: 0 0 40px rgba(14,165,233,0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--deep);
+            color: #e2e8f0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(14,165,233,0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(16,217,160,0.1) 0%, transparent 50%),
+                        linear-gradient(135deg, #0a1628 0%, #0d2240 50%, #0a1a30 100%);
+        }
+
+        .particle {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-up linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float-up {
+            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+            10%  { opacity: 0.6; }
+            90%  { opacity: 0.3; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* Nav */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            padding: 1.2rem 2rem;
+            backdrop-filter: blur(20px);
+            background: rgba(10,22,40,0.7);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-logo span { color: var(--sky); }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--sky); }
+        .nav-links a.active { color: white; }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 6rem 2rem 4rem;
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(14,165,233,0.1);
+            border: 1px solid rgba(14,165,233,0.3);
+            color: var(--sky);
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.35rem 0.9rem;
+            border-radius: 99px;
+            margin-bottom: 1.5rem;
+            animation: fade-in 0.6s ease both;
+        }
+
+        .hero-tag::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--sky);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            color: white;
+            animation: fade-in 0.8s ease 0.1s both;
+        }
+
+        h1 .gradient-text {
+            background: linear-gradient(135deg, var(--sky), var(--mint));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            margin-top: 1.5rem;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.6);
+            max-width: 480px;
+            animation: fade-in 0.8s ease 0.2s both;
+        }
+
+        .hero-cta {
+            margin-top: 2.5rem;
+            display: flex;
+            gap: 1rem;
+            animation: fade-in 0.8s ease 0.3s both;
+        }
+
+        .btn-primary-custom {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, var(--sky), #0284c7);
+            color: white;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0.85rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(14,165,233,0.35);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary-custom::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(14,165,233,0.5);
+        }
+        .btn-primary-custom:hover::after { opacity: 1; }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.85rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.12);
+            transition: all 0.25s;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: white;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* AQI Visual Sphere */
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fade-in 1s ease 0.4s both;
+        }
+
+        .aqi-sphere-wrap {
+            position: relative;
+            width: 340px;
+            height: 340px;
+        }
+
+        .aqi-sphere {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--mint) 0%, #22d3a0 15%, var(--sky) 35%, #f59e0b 60%, #ef4444 80%, var(--mint) 100%
+            );
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 80px rgba(14,165,233,0.4), inset 0 0 40px rgba(0,0,0,0.3);
+            animation: sphere-spin 12s linear infinite;
+        }
+
+        .aqi-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), transparent 60%),
+                        var(--deep);
+        }
+
+        @keyframes sphere-spin {
+            from { filter: hue-rotate(0deg); }
+            to { filter: hue-rotate(360deg); }
+        }
+
+        .aqi-label {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+        }
+
+        .aqi-label span {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: white;
+            display: block;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+        }
+
+        .aqi-label small {
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Orbiting icons */
+        .orbit {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: orbit-spin 8s linear infinite;
+        }
+
+        .orbit-icon {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 42px; height: 42px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        @keyframes orbit-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .orbit:nth-child(2) { animation-duration: 12s; animation-direction: reverse; }
+        .orbit:nth-child(3) { animation-duration: 6s; }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            animation: fade-in 0.8s ease 0.4s both;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .stat-divider {
+            width: 1px;
+            background: rgba(255,255,255,0.1);
+            align-self: stretch;
+        }
+
+        /* Feature Cards */
+        .features {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2rem 6rem;
+        }
+
+        .features-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--mint);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--sky), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(14,165,233,0.2);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature-icon.blue { background: rgba(14,165,233,0.15); }
+        .feature-icon.mint { background: rgba(16,217,160,0.15); }
+        .feature-icon.amber { background: rgba(245,158,11,0.15); }
+
+        .feature-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.6rem;
+        }
+
+        .feature-card p {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.65;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            padding: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        footer p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .social-link {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .social-link:hover {
+            background: rgba(14,165,233,0.15);
+            border-color: rgba(14,165,233,0.3);
+            color: var(--sky);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* AQI Scale Bar */
+        .aqi-scale {
+            margin-top: 2rem;
+            animation: fade-in 0.8s ease 0.5s both;
+        }
+
+        .scale-bar {
+            height: 6px;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #22c55e, #84cc16, #eab308, #f97316, #ef4444, #7c3aed);
+            margin-top: 0.5rem;
+            position: relative;
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.4rem;
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        @media (max-width: 768px) {
+            .hero-inner { grid-template-columns: 1fr; gap: 2rem; }
+            .hero-visual { order: -1; }
+            .aqi-sphere-wrap { width: 240px; height: 240px; }
+            .aqi-sphere { width: 160px; height: 160px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .footer-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
 </head>
-<body class="home">
+<body>
+    <div class="bg-canvas"></div>
+
+    <!-- Floating particles -->
+    <div id="particles"></div>
+
     <nav>
-        <ul>
-            
-            <li><a href="/">Home</a></li>
-            <li><a href="/weather">Weather</a></li>
-        </ul>
-    </nav>
-    <div class="container">
-        <h1>Welcome to Air Quality Prediction</h1>
-        
-        <div class="container2">
-            <div class="instructions">
-                <h2>How to Use This Tool</h2>
-                <p>Enter the environmental parameters in the fields to predict the air quality index. The model uses machine learning to provide an estimate based on the input values.</p>
-                <p>All fields are required for an accurate prediction.</p>
-            </div>
-            <div class="spacer"></div></div>
-        <a href="/predict_page" class="btn">Check Air Quality</a>
-    </div>
-    <footer>
-        <p>&copy; 2025 Air Quality Project | Designed by 220021090432</p>
-        <div class="social-icons">
-            <a href="https://www.facebook.com" target="_blank"><img src="static\images\facebook_icon.png" alt="Facebook"></a>
-            <a href="https://www.instagram.com" target="_blank"><img src="static\images\instagram_icon.png" alt="Instagram"></a>
-            <a href="https://www.linkedin.com" target="_blank"><img src="static\images\linkedin_icon.png" alt="LinkedIn"></a>
-            <a href="https://www.twitter.com" target="_blank"><img src="static\images\x_icon.png" alt="X"></a>
-            <p></p>
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Air<span>Sense</span></a>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/weather">Weather</a></li>
+                <li><a href="/predict_page">Predict</a></li>
+            </ul>
         </div>
-    </center> 
-    </footer> 
-        
+    </nav>
+
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-content">
+                <div class="hero-tag">
+                    ML-Powered Prediction
+                </div>
+                <h1>Breathe Smarter.<br><span class="gradient-text">Predict the Air.</span></h1>
+                <p class="hero-desc">
+                    Enter environmental parameters and get instant machine-learning based predictions on air quality levels — from Good to Hazardous.
+                </p>
+
+                <div class="aqi-scale">
+                    <p style="font-size:0.78rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.08em;">AQI Scale</p>
+                    <div class="scale-bar"></div>
+                    <div class="scale-labels">
+                        <span>Good</span>
+                        <span>Moderate</span>
+                        <span>Unhealthy</span>
+                        <span>Hazardous</span>
+                    </div>
+                </div>
+
+                <div class="hero-cta">
+                    <a href="/predict_page" class="btn-primary-custom">
+                        <span>🔬</span> Check Air Quality
+                    </a>
+                    <a href="/weather" class="btn-ghost">
+                        <span>🌤</span> Weather Data
+                    </a>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <span class="stat-num">9</span>
+                        <span class="stat-label">Parameters</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-num">5</span>
+                        <span class="stat-label">AQI Classes</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-num">ML</span>
+                        <span class="stat-label">Powered</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="aqi-sphere-wrap">
+                    <div class="orbit" style="top:0; left:0; width:100%; height:100%; position:absolute; animation: orbit-spin 10s linear infinite;">
+                        <div class="orbit-icon" style="top:0; left:50%; transform:translateX(-50%);">🌿</div>
+                    </div>
+                    <div class="orbit" style="top:0; left:0; width:100%; height:100%; position:absolute; animation: orbit-spin 14s linear infinite reverse;">
+                        <div class="orbit-icon" style="bottom:0; top:auto; left:50%; transform:translateX(-50%);">💧</div>
+                    </div>
+                    <div class="orbit" style="top:0; left:0; width:100%; height:100%; position:absolute; animation: orbit-spin 9s linear infinite;">
+                        <div class="orbit-icon" style="top:50%; right:0; left:auto; transform:translateY(-50%);">🌬️</div>
+                    </div>
+                    <div class="orbit" style="top:0; left:0; width:100%; height:100%; position:absolute; animation: orbit-spin 11s linear infinite reverse;">
+                        <div class="orbit-icon" style="top:50%; left:0; transform:translateY(-50%);">🌡️</div>
+                    </div>
+                    <div class="aqi-sphere"></div>
+                    <div class="aqi-label">
+                        <span>AQI</span>
+                        <small>Predict Now</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="features-inner">
+            <p class="section-label">What we measure</p>
+            <h2 class="section-title">9 Environmental Factors</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blue">🌡️</div>
+                    <h3>Temperature & Humidity</h3>
+                    <p>Atmospheric conditions directly affecting pollutant behaviour and dispersion patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon mint">🌫️</div>
+                    <h3>PM2.5 & PM10 Particles</h3>
+                    <p>Fine and coarse particulate matter — the most critical health-relevant air pollutants.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon amber">🏭</div>
+                    <h3>NO₂, SO₂ & CO Gases</h3>
+                    <p>Key industrial and vehicular gas pollutants contributing to urban air quality degradation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon blue">📍</div>
+                    <h3>Industrial Proximity</h3>
+                    <p>Distance to industrial zones, a primary driver of localized pollution concentrations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon mint">👥</div>
+                    <h3>Population Density</h3>
+                    <p>Human activity density influencing traffic, waste, and energy consumption emissions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon amber">🤖</div>
+                    <h3>ML Classification</h3>
+                    <p>Trained model returns predictions with class probabilities for detailed analysis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-inner">
+            <p>© 2025 AirSense · Air Quality Prediction System · Designed by 220021090432</p>
+            <div class="social-links">
+                <a href="https://www.facebook.com" target="_blank" class="social-link" title="Facebook">f</a>
+                <a href="https://www.instagram.com" target="_blank" class="social-link" title="Instagram">in</a>
+                <a href="https://www.linkedin.com" target="_blank" class="social-link" title="LinkedIn">li</a>
+                <a href="https://www.twitter.com" target="_blank" class="social-link" title="X / Twitter">𝕏</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Generate floating particles
+        const container = document.getElementById('particles');
+        const colors = ['rgba(14,165,233,0.5)', 'rgba(16,217,160,0.4)', 'rgba(255,255,255,0.25)'];
+        for (let i = 0; i < 28; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 5 + 2;
+            p.style.cssText = `
+                width: ${size}px; height: ${size}px;
+                left: ${Math.random() * 100}%;
+                background: ${colors[Math.floor(Math.random() * colors.length)]};
+                animation-duration: ${Math.random() * 15 + 10}s;
+                animation-delay: ${Math.random() * 10}s;
+            `;
+            container.appendChild(p);
+        }
+    </script>
 </body>
 </html>
